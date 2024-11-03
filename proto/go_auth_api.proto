@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package go_auth.service.v1;
+option go_package = "./pb";
+
+import "proto/go_auth_payload.proto";
+
+service UserService {
+  rpc GetUser (GetUserRequest) returns (GetUserResponse);
+  rpc RegisterUser (RegisterUserRequest) returns (DefaultResponse);
+  rpc LoginUser (LoginUserRequest) returns (LoginUserResponse);
+}

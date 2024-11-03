@@ -1,0 +1,40 @@
+definitions:
+  pb.LoginUserRequest:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and returns a token
+      parameters:
+      - description: Login Request
+        in: body
+        name: requestBody
+        required: true
+        schema:
+          $ref: '#/definitions/pb.LoginUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login User
+      tags:
+      - Auth
+swagger: "2.0"

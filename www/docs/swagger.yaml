@@ -1,4 +1,16 @@
 definitions:
+  main.FailureError:
+    properties:
+      error:
+        type: string
+    type: object
+  main.LoginUserSuccess:
+    properties:
+      message:
+        type: string
+      token:
+        type: string
+    type: object
   pb.LoginUserRequest:
     properties:
       name:
@@ -27,13 +39,11 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/main.LoginUserSuccess'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/main.FailureError'
       summary: Login User
       tags:
       - Auth

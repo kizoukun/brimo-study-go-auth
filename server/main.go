@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"go-auth/server/api"
 	"go-auth/server/config"
 	manager "go-auth/server/jwt"
@@ -28,6 +29,7 @@ import (
 
 const serviceName = "go-auth-service"
 const defaultPort = 50051
+const APP_PORT = "9090"
 
 var appConfig *config.Config
 
@@ -38,8 +40,8 @@ func main() {
 	docs.SwaggerInfo.Title = "Go Auth API"
 	docs.SwaggerInfo.Description = "API documentation for Go Auth Service"
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost:8080"
-	docs.SwaggerInfo.BasePath = "/"
+	docs.SwaggerInfo.Host = fmt.Sprintf("localhost:%s", APP_PORT)
+	docs.SwaggerInfo.BasePath = "/api"
 
 	esLogger := logrus.New()
 	esLogger.SetFormatter(&ecslogrus.Formatter{})
@@ -88,9 +90,9 @@ func main() {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Register API endpoints
-	router.POST("/login", loginUser(userService))
+	router.POST("/api/login", loginUser(userService))
 
-	go router.Run(":8080")
+	go router.Run(fmt.Sprintf(":%s", APP_PORT))
 	pb.RegisterUserServiceServer(grpcServer, userService)
 
 	if err := grpcServer.Serve(lis); err != nil {
@@ -98,15 +100,24 @@ func main() {
 	}
 }
 
-// @Summary Login User
-// @Description Authenticates a user and returns a token
-// @Tags Auth
-// @Accept  json
-// @Produce  json
-// @Param   requestBody body pb.LoginUserRequest true "Login Request"
-// @Success 200 {object} map[string]interface{}
-// @Failure 401 {object} map[string]interface{}
-// @Router /login [post]
+type FailureError struct {
+	Error string `json:"error"`
+}
+
+type LoginUserSuccess struct {
+	Message string `json:"message"`
+	Token   string `json:"token"`
+}
+
+// @Summary		Login User
+// @Description	Authenticates a user and returns a token
+// @Tags			Auth
+// @Accept			json
+// @Produce		json
+// @Param			requestBody	body		pb.LoginUserRequest	true	"Login Request"
+// @Success		200			{object}	LoginUserSuccess
+// @Failure		401			{object}	FailureError
+// @Router			/login [post]
 func loginUser(userService *api.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var credentials pb.LoginUserRequest
@@ -119,10 +130,15 @@ func loginUser(userService *api.Server) gin.HandlerFunc {
 		// Call userService's login method and handle response
 		resp, err := userService.LoginUser(c.Request.Context(), &credentials)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
+			c.JSON(http.StatusUnauthorized, FailureError{
+				Error: "Unauthorized",
+			})
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": "User logged in successfully", "token": resp.AccessToken})
+		c.JSON(http.StatusOK, LoginUserSuccess{
+			Message: "Login successful",
+			Token:   resp.AccessToken,
+		})
 	}
 }

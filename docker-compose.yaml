@@ -63,11 +63,24 @@ services:
     depends_on:
       - elasticsearch
 
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"        # RabbitMQ default port
+      - "15672:15672"      # RabbitMQ management console
+    environment:
+      RABBITMQ_DEFAULT_USER: guest     # replace with your desired username
+      RABBITMQ_DEFAULT_PASS: guest # replace with your desired password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
 volumes:
   test_data:
   ls_data:
   kb_data:
   mysql_data:
+  rabbitmq_data:
 
 networks:
   elk:

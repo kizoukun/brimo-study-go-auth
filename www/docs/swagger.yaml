@@ -11,7 +11,34 @@ definitions:
       token:
         type: string
     type: object
+  main.RegisterUserSuccess:
+    properties:
+      message:
+        type: string
+      user:
+        $ref: '#/definitions/main.UserDTO'
+    type: object
+  main.UserDTO:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      updated_at:
+        type: string
+    type: object
   pb.LoginUserRequest:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  pb.RegisterUserRequest:
     properties:
       name:
         type: string
@@ -45,6 +72,32 @@ paths:
           schema:
             $ref: '#/definitions/main.FailureError'
       summary: Login User
+      tags:
+      - Auth
+  /register:
+    put:
+      consumes:
+      - application/json
+      description: Authenticates a user and returns a token
+      parameters:
+      - description: Regiser Request
+        in: body
+        name: requestBody
+        required: true
+        schema:
+          $ref: '#/definitions/pb.RegisterUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.RegisterUserSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/main.FailureError'
+      summary: Register User
       tags:
       - Auth
 swagger: "2.0"

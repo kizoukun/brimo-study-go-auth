@@ -10,6 +10,7 @@ import (
 	"go-auth/server/pb"
 	"net"
 	"net/http"
+	"time"
 
 	"go-auth/www/docs"
 
@@ -91,6 +92,7 @@ func main() {
 
 	// Register API endpoints
 	router.POST("/api/login", loginUser(userService))
+	router.PUT("/api/register", registerUser(userService))
 
 	go router.Run(fmt.Sprintf(":%s", APP_PORT))
 	pb.RegisterUserServiceServer(grpcServer, userService)
@@ -139,6 +141,59 @@ func loginUser(userService *api.Server) gin.HandlerFunc {
 		c.JSON(http.StatusOK, LoginUserSuccess{
 			Message: "Login successful",
 			Token:   resp.AccessToken,
+		})
+	}
+}
+
+type UserDTO struct {
+	Id        uint64    `json:"id"`
+	Name      string    `json:"name"`
+	Password  string    `json:"password"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type RegisterUserSuccess struct {
+	Message string  `json:"message"`
+	User    UserDTO `json:"user"`
+}
+
+// @Summary		Register User
+// @Description	Authenticates a user and returns a token
+// @Tags			Auth
+// @Accept			json
+// @Produce		json
+// @Param			requestBody	body		pb.RegisterUserRequest	true	"Regiser Request"
+// @Success		200			{object}	RegisterUserSuccess
+// @Failure		401			{object}	FailureError
+// @Router			/register [put]
+func registerUser(userService *api.Server) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var credentials pb.RegisterUserRequest
+
+		if err := c.ShouldBindJSON(&credentials); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+			return
+		}
+
+		// Call userService's login method and handle response
+		resp, err := userService.RegisterUser(c.Request.Context(), &credentials)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, FailureError{
+				Error: "Unauthorized",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, RegisterUserSuccess{
+			Message: "Login successful",
+			User: UserDTO{
+				Id:        resp.User.Id,
+				Name:      resp.User.Name,
+				Password:  resp.User.Password,
+				CreatedAt: resp.User.CreatedAt.AsTime(),
+				UpdatedAt: resp.User.UpdatedAt.AsTime(),
+			},
 		})
 	}
 }

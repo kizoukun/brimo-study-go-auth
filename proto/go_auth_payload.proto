@@ -30,6 +30,13 @@ message LoginUserResponse {
   string access_token = 4;
 }
 
+message RegisterUserResponse {
+  bool error = 1;
+  uint32 code = 2;
+  string message = 3;
+  GetUserResponse user = 4;
+}
+
 message GetUserRequest {
   uint64 id = 1;
 }

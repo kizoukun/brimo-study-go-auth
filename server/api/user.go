@@ -9,11 +9,12 @@ import (
 	"strconv"
 
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"gorm.io/gorm"
 )
 
-func (s *Server) RegisterUser(ctx context.Context, req *pb.RegisterUserRequest) (*pb.DefaultResponse, error) {
+func (s *Server) RegisterUser(ctx context.Context, req *pb.RegisterUserRequest) (*pb.RegisterUserResponse, error) {
 
 	s.Logger.Info("RegisterUser function was invoked with request: ", req)
 
@@ -37,10 +38,17 @@ func (s *Server) RegisterUser(ctx context.Context, req *pb.RegisterUserRequest) 
 		return nil, err
 	}
 
-	return &pb.DefaultResponse{
+	return &pb.RegisterUserResponse{
 		Error:   false,
 		Code:    http.StatusOK,
 		Message: "Success",
+		User: &pb.GetUserResponse{
+			Id:        uint64(user.ID),
+			Name:      user.Name,
+			Password:  user.Password,
+			CreatedAt: timestamppb.New(user.CreatedAt),
+			UpdatedAt: timestamppb.New(user.UpdatedAt),
+		},
 	}, nil
 }
 
@@ -84,10 +92,10 @@ func (s *Server) GetUserByName(ctx context.Context, name string) (*models.User, 
 }
 
 func (s *Server) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
-	
+
 	var user models.User
-	
-	err := s.Db.Where("id = ?", req.Id).First(&user).Error; 
+
+	err := s.Db.Where("id = ?", req.Id).First(&user).Error
 	if err != nil {
 		return nil, err
 	}

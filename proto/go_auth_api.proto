@@ -7,6 +7,6 @@ import "proto/go_auth_payload.proto";
 
 service UserService {
   rpc GetUser (GetUserRequest) returns (GetUserResponse);
-  rpc RegisterUser (RegisterUserRequest) returns (DefaultResponse);
+  rpc RegisterUser (RegisterUserRequest) returns (RegisterUserResponse);
   rpc LoginUser (LoginUserRequest) returns (LoginUserResponse);
 }
